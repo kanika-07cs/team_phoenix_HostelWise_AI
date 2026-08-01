@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { 
   Users, 
   UserMinus, 
   CalendarDays, 
   DoorOpen, 
   Percent, 
-  ArrowRight,
-  Fingerprint,
-  FileText,
-  Sparkles,
   Search
 } from 'lucide-react';
 
 const Occupancy = () => {
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [studentSearch, setStudentSearch] = useState('');
@@ -34,7 +32,7 @@ const Occupancy = () => {
       } catch (error) {
         console.error('Failed fetching occupancy lists:', error);
         
-        // Mock data fallback if offline
+        // Mock fallback if offline
         setStudents([
           { id: 1, roll_number: 'CS22B104', name: 'Rohan Kulkarni', email: 'rohan.k@college.edu', contact: '+91 9876543210', status: 'present' },
           { id: 2, roll_number: 'EC22B208', name: 'Aman Sharma', email: 'aman.s@college.edu', contact: '+91 9876543211', status: 'outside' },
@@ -43,8 +41,8 @@ const Occupancy = () => {
         ]);
         
         setLeaves([
-          { id: 1, student_id: 3, start_date: '2026-07-30', end_date: '2026-08-04', reason: 'Family function trip', status: 'Approved' },
-          { id: 2, student_id: 2, start_date: '2026-08-01', end_date: '2026-08-03', reason: 'Medical Checkup', status: 'Pending' }
+          { id: 1, student_id: 3, student_name: 'Gourav Patil', student_roll: 'ME22B301', start_date: '2026-07-30', end_date: '2026-08-04', reason: 'Family function trip', status: 'Approved' },
+          { id: 2, student_id: 2, student_name: 'Aman Sharma', student_roll: 'EC22B208', start_date: '2026-08-01', end_date: '2026-08-03', reason: 'Medical Checkup', status: 'Pending' }
         ]);
       } finally {
         setLoading(false);
@@ -74,7 +72,7 @@ const Occupancy = () => {
     return (
       <div className="p-8 space-y-6 animate-pulse">
         <div className="h-12 w-64 bg-slate-200 dark:bg-slate-700 rounded-premium-sm" />
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="h-28 bg-slate-200 dark:bg-slate-700 rounded-premium" />
           ))}
@@ -83,7 +81,7 @@ const Occupancy = () => {
     );
   }
 
-  const summary = data?.summary || { total_hostels: 4, total_floors: 16, total_rooms: 256, occupancy_rate: 75.0, students_present: 768, students_outside: 180, students_leave: 76 };
+  const summary = data?.summary || { total_hostels: 4, total_floors: 16, total_rooms: 256, occupied_rooms: 192, occupancy_rate: 75.0, students_present: 768, students_outside: 180, students_leave: 76 };
 
   // Filter students based on search string
   const filteredStudents = students.filter(st => 
@@ -95,12 +93,28 @@ const Occupancy = () => {
     <div className="p-8 space-y-8 max-w-[1600px] mx-auto">
       <div>
         <h2 className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary tracking-tight">Occupancy Analysis</h2>
-        <p className="text-sm font-medium text-brand-textSecondary dark:text-dark-textSecondary">Real-time attendance biometric scans, holiday plans, and room densities.</p>
+        <p className="text-sm font-medium text-brand-textSecondary dark:text-dark-textSecondary">
+          {user?.role_name === 'supervisor' 
+            ? `Real-time attendance biometric scans, holiday plans, and room densities for: ${user?.assigned_hostel_name || 'My Hostel'}.`
+            : 'Real-time attendance biometric scans, holiday plans, and room densities.'}
+        </p>
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         
+        <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-5 rounded-premium shadow-premium flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-brand-textSecondary uppercase tracking-wider block mb-1">Total Students</span>
+            <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">
+              {(summary.students_present || 0) + (summary.students_outside || 0) + (summary.students_leave || 0)}
+            </span>
+          </div>
+          <div className="p-2.5 rounded-premium-sm bg-brand-veryLightBlue text-brand-primary">
+            <Users className="w-5 h-5" />
+          </div>
+        </div>
+
         <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-5 rounded-premium shadow-premium flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-brand-textSecondary uppercase tracking-wider block mb-1">Students Present</span>
@@ -131,88 +145,13 @@ const Occupancy = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-5 rounded-premium shadow-premium flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-brand-textSecondary uppercase tracking-wider block mb-1">Active Rooms</span>
-            <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">192 / 256</span>
-          </div>
-          <div className="p-2.5 rounded-premium-sm bg-brand-veryLightBlue text-brand-primary">
-            <DoorOpen className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-5 rounded-premium shadow-premium flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-brand-textSecondary uppercase tracking-wider block mb-1">Occupancy Density</span>
-            <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">{summary.occupancy_rate}%</span>
-          </div>
-          <div className="p-2.5 rounded-premium-sm bg-brand-veryLightBlue text-brand-primary">
-            <Percent className="w-5 h-5" />
-          </div>
-        </div>
-
-      </div>
-
-      {/* Beautiful pipeline diagram requested by user */}
-      <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-6 rounded-premium shadow-premium space-y-6">
-        <div>
-          <h3 className="font-extrabold text-brand-textPrimary dark:text-dark-textPrimary text-base">Occupancy Flow Engine Pipeline</h3>
-          <p className="text-xs text-brand-textSecondary dark:text-dark-textSecondary">How real-time parameters compile to trigger smart electrical override commands.</p>
-        </div>
-
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 p-4 rounded-premium-sm bg-brand-bg dark:bg-slate-900 border border-brand-border dark:border-dark-border overflow-x-auto">
-          
-          {/* Node 1: Biometric IN/OUT */}
-          <div className="flex flex-col items-center p-3.5 bg-white dark:bg-slate-800 rounded-premium-sm shadow-premium border border-brand-border dark:border-dark-border min-w-[140px] text-center">
-            <Fingerprint className="w-5 h-5 text-brand-primary mb-1.5" />
-            <span className="text-xs font-bold text-brand-textPrimary dark:text-dark-textPrimary leading-none">Biometric Gate</span>
-            <span className="text-[9px] text-brand-textSecondary dark:text-dark-textSecondary font-semibold mt-1">IN / OUT Logs</span>
-          </div>
-
-          <ArrowRight className="w-5 h-5 text-brand-primary rotate-90 lg:rotate-0" />
-
-          {/* Node 2: Leaves & Calendar */}
-          <div className="flex flex-col items-center p-3.5 bg-white dark:bg-slate-800 rounded-premium-sm shadow-premium border border-brand-border dark:border-dark-border min-w-[140px] text-center">
-            <CalendarDays className="w-5 h-5 text-brand-primary mb-1.5" />
-            <span className="text-xs font-bold text-brand-textPrimary dark:text-dark-textPrimary leading-none">Calendar & Leaves</span>
-            <span className="text-[9px] text-brand-textSecondary dark:text-dark-textSecondary font-semibold mt-1">Leave records + Timetable</span>
-          </div>
-
-          <ArrowRight className="w-5 h-5 text-brand-primary rotate-90 lg:rotate-0" />
-
-          {/* Node 3: Academic context */}
-          <div className="flex flex-col items-center p-3.5 bg-white dark:bg-slate-800 rounded-premium-sm shadow-premium border border-brand-border dark:border-dark-border min-w-[140px] text-center">
-            <FileText className="w-5 h-5 text-brand-primary mb-1.5" />
-            <span className="text-xs font-bold text-brand-textPrimary dark:text-dark-textPrimary leading-none">Academic Context</span>
-            <span className="text-[9px] text-brand-textSecondary dark:text-dark-textSecondary font-semibold mt-1">Working vs Holidays</span>
-          </div>
-
-          <ArrowRight className="w-5 h-5 text-brand-primary rotate-90 lg:rotate-0" />
-
-          {/* Node 4: AI Engine */}
-          <div className="flex flex-col items-center p-3.5 bg-brand-primary text-white rounded-premium-sm shadow-premium min-w-[150px] text-center">
-            <Sparkles className="w-5 h-5 fill-current text-white mb-1.5 animate-pulse" />
-            <span className="text-xs font-bold leading-none">Occupancy Engine</span>
-            <span className="text-[9px] opacity-80 font-bold mt-1">State Predictor</span>
-          </div>
-
-          <ArrowRight className="w-5 h-5 text-brand-primary rotate-90 lg:rotate-0" />
-
-          {/* Node 5: Override Suggestion */}
-          <div className="flex flex-col items-center p-3.5 bg-green-50 dark:bg-green-950/20 text-brand-success rounded-premium-sm border border-brand-success/30 shadow-premium min-w-[140px] text-center">
-            <DoorOpen className="w-5 h-5 text-brand-success mb-1.5" />
-            <span className="text-xs font-bold leading-none">Smart Override</span>
-            <span className="text-[9px] text-brand-success font-bold mt-1">Energy Saving Action</span>
-          </div>
-
-        </div>
       </div>
 
       {/* Student list and Leaves tracking table */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Active Students Log */}
-        <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-6 rounded-premium shadow-premium flex flex-col h-[400px]">
+        <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-6 rounded-premium shadow-premium flex flex-col h-[500px]">
           <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
             <div>
               <h3 className="font-extrabold text-sm text-brand-textPrimary dark:text-dark-textPrimary uppercase tracking-wider">Campus Students Ledger</h3>
@@ -257,7 +196,7 @@ const Occupancy = () => {
         </div>
 
         {/* Leaves Approval log */}
-        <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-6 rounded-premium shadow-premium flex flex-col h-[400px]">
+        <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-6 rounded-premium shadow-premium flex flex-col h-[500px]">
           <div>
             <h3 className="font-extrabold text-sm text-brand-textPrimary dark:text-dark-textPrimary uppercase tracking-wider mb-1">Student Leave Logs</h3>
             <p className="text-[11px] text-brand-textSecondary mb-4">Leave records indicating planned vacancies for energy optimization rules.</p>
@@ -267,7 +206,7 @@ const Occupancy = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-brand-sidebar dark:bg-slate-900 sticky top-0 font-bold text-brand-textSecondary text-[10px] uppercase tracking-wider">
                 <tr>
-                  <th className="p-3">Student ID</th>
+                  <th className="p-3">Student Details</th>
                   <th className="p-3">Duration</th>
                   <th className="p-3">Reason</th>
                   <th className="p-3">Status</th>
@@ -276,7 +215,10 @@ const Occupancy = () => {
               <tbody className="divide-y divide-brand-border dark:divide-dark-border">
                 {leaves.map((lv) => (
                   <tr key={lv.id} className="hover:bg-brand-bg dark:hover:bg-slate-700/50 transition-colors">
-                    <td className="p-3 font-bold text-brand-textPrimary dark:text-dark-textPrimary">ID: {lv.student_id}</td>
+                    <td className="p-3 text-brand-textPrimary dark:text-dark-textPrimary">
+                      <span className="font-semibold block">{lv.student_name || `ID: ${lv.student_id}`}</span>
+                      <span className="text-[10px] text-brand-textSecondary">{lv.student_roll || ''}</span>
+                    </td>
                     <td className="p-3 text-brand-textSecondary dark:text-dark-textSecondary font-semibold">
                       {lv.start_date} to {lv.end_date}
                     </td>

@@ -86,6 +86,13 @@ const Dashboard = ({ onAlertTrigger }) => {
   }, [onAlertTrigger]);
 
   const getTrendData = () => {
+    if (data) {
+      switch (trendRange) {
+        case 'weekly': return data.weekly_trend || trendDataWeekly;
+        case 'monthly': return data.monthly_trend || trendDataMonthly;
+        default: return data.daily_trend || trendDataDaily;
+      }
+    }
     switch (trendRange) {
       case 'weekly': return trendDataWeekly;
       case 'monthly': return trendDataMonthly;
@@ -129,7 +136,9 @@ const Dashboard = ({ onAlertTrigger }) => {
               </h2>
             </div>
             <p className="text-sm font-medium text-brand-textSecondary dark:text-dark-textSecondary">
-              Here is your campus smart hostel energy summary for today. System health is optimal.
+              {user?.role_name === 'supervisor' 
+                ? `Currently monitoring energy parameters for your assigned scope: ${user?.assigned_hostel_name || 'My Hostel'}. System health is optimal.`
+                : 'Here is your campus smart hostel energy summary for today. System health is optimal.'}
             </p>
           </div>
           <div className="flex items-center gap-1.5 bg-brand-primary/10 text-brand-primary dark:bg-brand-primary/20 dark:text-brand-accent px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
@@ -328,8 +337,17 @@ const Dashboard = ({ onAlertTrigger }) => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 pt-6 border-t border-brand-border dark:border-dark-border">
         
         <div className="flex flex-col">
-          <span className="text-[10px] font-bold text-brand-textSecondary dark:text-dark-textSecondary uppercase tracking-wider mb-1">Total Hostels</span>
-          <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">{summary.total_hostels}</span>
+          {user?.role_name === 'supervisor' ? (
+            <>
+              <span className="text-[10px] font-bold text-brand-textSecondary dark:text-dark-textSecondary uppercase tracking-wider mb-1">Hostel Scope</span>
+              <span className="text-2xl font-black text-brand-primary dark:text-brand-accent truncate max-w-[180px]" title={summary.hostel_name}>{summary.hostel_name || user?.assigned_hostel_name}</span>
+            </>
+          ) : (
+            <>
+              <span className="text-[10px] font-bold text-brand-textSecondary dark:text-dark-textSecondary uppercase tracking-wider mb-1">Total Hostels</span>
+              <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">{summary.total_hostels}</span>
+            </>
+          )}
         </div>
 
         <div className="flex flex-col">

@@ -50,6 +50,7 @@ class UserResponse(UserBase):
     id: int
     created_at: datetime
     role_name: Optional[str] = None # Custom populated field
+    assigned_hostel_name: Optional[str] = None # Custom populated field
 
     class Config:
         from_attributes = True
@@ -183,6 +184,8 @@ class LeaveRecordResponse(BaseModel):
     status: str
     approved_by: Optional[int] = None
     created_at: datetime
+    student_name: Optional[str] = None
+    student_roll: Optional[str] = None
     class Config:
         from_attributes = True
 

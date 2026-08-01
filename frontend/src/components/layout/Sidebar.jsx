@@ -20,7 +20,9 @@ const Sidebar = () => {
 
   const menuItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Hostels & Map', path: '/hostels', icon: Building2 },
+    isSuperAdmin 
+      ? { name: 'Hostels & Map', path: '/hostels', icon: Building2 }
+      : { name: user?.assigned_hostel_name || 'My Hostel', path: `/hostels/${user?.assigned_hostel_id || 1}`, icon: Building2 },
     { name: 'Occupancy', path: '/occupancy', icon: Users },
     { name: 'Energy Analytics', path: '/analytics', icon: BarChart3 },
     { name: 'Reports', path: '/reports', icon: FileSpreadsheet },

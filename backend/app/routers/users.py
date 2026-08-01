@@ -18,6 +18,8 @@ def read_user_me(current_user: models.User = Depends(get_current_active_user)):
     # Map role name to response schema custom property
     response = schemas.UserResponse.from_orm(current_user)
     response.role_name = current_user.role.name
+    if current_user.assigned_hostel:
+        response.assigned_hostel_name = current_user.assigned_hostel.name
     return response
 
 

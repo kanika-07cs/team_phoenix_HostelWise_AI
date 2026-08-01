@@ -15,15 +15,23 @@ router = APIRouter(prefix="/hostels", tags=["Hostels"])
 admin_only = Depends(RoleChecker(["super_admin"]))
 all_users = Depends(get_current_active_user)
 
-@router.get("/", response_model=List[schemas.HostelResponse], dependencies=[all_users])
-def read_all_hostels(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """List all hostels in the college campus."""
+@router.get("/", response_model=List[schemas.HostelResponse])
+def read_all_hostels(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """List all hostels in the college campus (Filtered for supervisor)."""
+    if current_user.role.name == "supervisor":
+        h_id = current_user.assigned_hostel_id
+        if not h_id:
+            return []
+        hostel = db.query(models.Hostel).filter(models.Hostel.id == h_id).first()
+        return [hostel] if hostel else []
     return crud.get_hostels(db, skip=skip, limit=limit)
 
 
-@router.get("/{hostel_id}", response_model=schemas.HostelResponse, dependencies=[all_users])
-def read_hostel_by_id(hostel_id: int, db: Session = Depends(get_db)):
+@router.get("/{hostel_id}", response_model=schemas.HostelResponse)
+def read_hostel_by_id(hostel_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     """Fetch details of a specific hostel."""
+    if current_user.role.name == "supervisor" and hostel_id != current_user.assigned_hostel_id:
+        raise HTTPException(status_code=403, detail="Forbidden: You are not assigned to this hostel")
     db_hostel = crud.get_hostel(db, hostel_id=hostel_id)
     if not db_hostel:
         raise HTTPException(status_code=404, detail="Hostel not found")
@@ -88,13 +96,15 @@ def remove_hostel(hostel_id: int, db: Session = Depends(get_db)):
     return None
 
 
-@router.get("/{hostel_id}/layout", dependencies=[all_users])
-def get_hostel_layout_tree(hostel_id: int, request: Request, db: Session = Depends(get_db)):
+@router.get("/{hostel_id}/layout")
+def get_hostel_layout_tree(hostel_id: int, request: Request, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     """
     Returns the hierarchal tree structure (Hostel -> Floors -> Wings -> Rooms)
     optimized for rendering nested tree menus and the Digital Twin map.
     Runs live ML anomaly detection to classify room status.
     """
+    if current_user.role.name == "supervisor" and hostel_id != current_user.assigned_hostel_id:
+        raise HTTPException(status_code=403, detail="Forbidden: You are not assigned to this hostel")
     hostel = crud.get_hostel(db, hostel_id=hostel_id)
     if not hostel:
         raise HTTPException(status_code=404, detail="Hostel not found")
@@ -238,9 +248,23 @@ def get_hostel_layout_tree(hostel_id: int, request: Request, db: Session = Depen
     return tree
 
 
-@router.put("/rooms/{room_id}", response_model=schemas.RoomResponse, dependencies=[all_users])
-def update_room_status(room_id: int, room_update: schemas.RoomUpdate, db: Session = Depends(get_db)):
+@router.put("/rooms/{room_id}", response_model=schemas.RoomResponse)
+def update_room_status(room_id: int, room_update: schemas.RoomUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     """Update room capacity, occupancy count, or operating status (Supervisor or Admin)."""
+    if current_user.role.name == "supervisor":
+        room = db.query(models.Room).filter(models.Room.id == room_id).first()
+        if not room:
+            raise HTTPException(status_code=404, detail="Room not found")
+        
+        # Trace up to hostel_id
+        h_id = db.query(models.Floor.hostel_id)\
+            .join(models.Wing, models.Wing.floor_id == models.Floor.id)\
+            .join(models.Room, models.Room.wing_id == models.Wing.id)\
+            .filter(models.Room.id == room_id).scalar()
+            
+        if h_id != current_user.assigned_hostel_id:
+            raise HTTPException(status_code=403, detail="Forbidden: Room does not belong to your hostel")
+            
     updated_room = crud.update_room(db=db, room_id=room_id, room_update=room_update)
     if not updated_room:
         raise HTTPException(status_code=404, detail="Room not found")

@@ -308,7 +308,6 @@ print("-" * 80)
 for name, metric in results.items():
     print(f"{name:<22} | {metric['accuracy']:<10.4f} | {metric['precision']:<10.4f} | {metric['recall']:<10.4f} | {metric['f1_score']:<10.4f} | {metric['auc']:<10.4f}")
 
-# Automatically select the best model (using F1-Score, then Accuracy)
 best_model_name = max(results, key=lambda k: (results[k]["f1_score"], results[k]["accuracy"]))
 log_message(f"Automatically selected best performing model: {best_model_name}")
 

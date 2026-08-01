@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Building2, ArrowRight, Zap, Users, LayoutGrid } from 'lucide-react';
 
 const Hostels = () => {
+  const { user } = useAuth();
   const [hostels, setHostels] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && user.role_name === 'supervisor' && user.assigned_hostel_id) {
+      navigate(`/hostels/${user.assigned_hostel_id}`, { replace: true });
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     const fetchHostels = async () => {

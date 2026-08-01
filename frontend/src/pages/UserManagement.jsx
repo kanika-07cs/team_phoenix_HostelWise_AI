@@ -89,25 +89,8 @@ const UserManagement = () => {
       setAssignedHostelId('');
       fetchUsersAndHostels(); // Refresh table
     } catch (err) {
-      console.warn('API user create failed. Logging locally.', err);
-      // Fallback mockup create
-      const mockNew = {
-        id: users.length + 1,
-        username,
-        email,
-        full_name: fullName,
-        role_name: 'supervisor',
-        assigned_hostel_id: assignedHostelId ? parseInt(assignedHostelId) : null,
-        is_active: true,
-        created_at: new Date().toISOString()
-      };
-      setUsers(prev => [...prev, mockNew]);
-      setSuccess('Supervisor account created locally.');
-      setUsername('');
-      setEmail('');
-      setPassword('');
-      setFullName('');
-      setAssignedHostelId('');
+      console.warn('API user create failed.', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to connect to the backend database server. Please make sure uvicorn is running.');
     } finally {
       setSubmitting(false);
     }

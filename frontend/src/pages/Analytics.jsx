@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -51,9 +53,33 @@ const analyticsMonthly = [
 ];
 
 const Analytics = () => {
+  const { user } = useAuth();
   const [range, setRange] = useState('daily'); // 'daily' | 'weekly' | 'monthly'
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const response = await api.get('/energy/analytics');
+        setAnalyticsData(response.data);
+      } catch (error) {
+        console.error('Failed loading energy analytics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnalytics();
+  }, []);
 
   const getChartData = () => {
+    if (analyticsData) {
+      switch (range) {
+        case 'weekly': return analyticsData.weekly_load || analyticsWeekly;
+        case 'monthly': return analyticsData.monthly_load || analyticsMonthly;
+        default: return analyticsData.daily_load || analyticsDaily;
+      }
+    }
     switch (range) {
       case 'weekly': return analyticsWeekly;
       case 'monthly': return analyticsMonthly;
@@ -61,27 +87,67 @@ const Analytics = () => {
     }
   };
 
-  const rankings = {
-    highestConsuming: [
-      { name: 'Hostel A', detail: 'Floor 3, Wing A', value: '420.5 kWh', icon: ArrowUpRight, color: 'text-brand-danger bg-red-50' },
-      { name: 'Hostel B', detail: 'Floor 1, Wing B', value: '380.2 kWh', icon: ArrowUpRight, color: 'text-brand-danger bg-red-50' },
-    ],
-    lowestConsuming: [
-      { name: 'Hostel D', detail: 'Floor 2, Wing A', value: '193.0 kWh', icon: ArrowDownRight, color: 'text-brand-success bg-green-50' },
-      { name: 'Hostel C', detail: 'Floor 3, Wing B', value: '290.8 kWh', icon: ArrowDownRight, color: 'text-brand-success bg-green-50' },
-    ],
-    highestSavings: [
-      { name: 'Hostel A', detail: 'Room 104 overridden', value: '124 kWh saved', icon: TrendingDown, color: 'text-brand-success bg-green-50' },
-      { name: 'Hostel C', detail: 'Automated light cycle', value: '90 kWh saved', icon: TrendingDown, color: 'text-brand-success bg-green-50' }
-    ]
+  const getRankings = () => {
+    const defaultRankings = {
+      highestConsuming: [
+        { name: 'Floor 3 Wing A', detail: 'High active HVAC loads', value: '180.5 kWh', color: 'text-brand-danger bg-red-50' },
+        { name: 'Floor 1 Wing B', detail: 'Idle socket usage', value: '154.2 kWh', color: 'text-brand-danger bg-red-50' }
+      ],
+      lowestConsuming: [
+        { name: 'Floor 2 Wing A', detail: 'Optimal LED standby', value: '88.0 kWh', color: 'text-brand-success bg-green-50' },
+        { name: 'Floor 3 Wing B', detail: 'Biometric sleep cycle', value: '112.4 kWh', color: 'text-brand-success bg-green-50' }
+      ],
+      highestSavings: [
+        { name: 'Floor 3 Wing A override', detail: 'Automated schedule cut', value: '48 kWh saved', color: 'text-brand-success bg-green-50' },
+        { name: 'Standby optimization', detail: 'Unoccupied wing shutdown', value: '35 kWh saved', color: 'text-brand-success bg-green-50' }
+      ]
+    };
+
+    if (!analyticsData?.rankings) {
+      return {
+        highestConsuming: defaultRankings.highestConsuming.map(r => ({ ...r, icon: ArrowUpRight })),
+        lowestConsuming: defaultRankings.lowestConsuming.map(r => ({ ...r, icon: ArrowDownRight })),
+        highestSavings: defaultRankings.highestSavings.map(r => ({ ...r, icon: TrendingDown }))
+      };
+    }
+
+    return {
+      highestConsuming: analyticsData.rankings.highestConsuming.map(r => ({ ...r, icon: ArrowUpRight })),
+      lowestConsuming: analyticsData.rankings.lowestConsuming.map(r => ({ ...r, icon: ArrowDownRight })),
+      highestSavings: analyticsData.rankings.highestSavings.map(r => ({ ...r, icon: TrendingDown }))
+    };
   };
+
+  const activeRankings = getRankings();
+  const frequency = analyticsData?.frequency || "50.02 Hz";
+  const powerFactor = analyticsData?.power_factor || "0.94 PF";
+  const peakLoad = analyticsData?.peak_load || "64.5 kW";
+  const loadDistribution = analyticsData?.load_distribution || "72% Active";
+
+  if (loading) {
+    return (
+      <div className="p-8 space-y-6 animate-pulse">
+        <div className="h-12 w-64 bg-slate-200 dark:bg-slate-700 rounded-premium-sm" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-28 bg-slate-200 dark:bg-slate-700 rounded-premium" />
+          ))}
+        </div>
+        <div className="h-96 bg-slate-200 dark:bg-slate-700 rounded-premium" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 space-y-8 max-w-[1600px] mx-auto">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary tracking-tight">Energy Analytics Console</h2>
-          <p className="text-sm font-medium text-brand-textSecondary dark:text-dark-textSecondary">Deep audit reviews of active vs passive electrical loads on smart campus circuits.</p>
+          <p className="text-sm font-medium text-brand-textSecondary dark:text-dark-textSecondary">
+            {user?.role_name === 'supervisor' 
+              ? `Audit reviews of active vs passive electrical loads on circuits for: ${user?.assigned_hostel_name || 'My Hostel'}.`
+              : 'Deep audit reviews of active vs passive electrical loads on campus-wide smart circuits.'}
+          </p>
         </div>
         
         {/* Toggle Range */}
@@ -108,7 +174,7 @@ const Analytics = () => {
         <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-5 rounded-premium shadow-premium flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-brand-textSecondary uppercase tracking-wider block mb-1">Grid Frequency</span>
-            <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">50.02 Hz</span>
+            <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">{frequency}</span>
             <span className="text-[10px] font-semibold text-brand-success block mt-1">Stable &bull; Nominal 50Hz</span>
           </div>
           <div className="p-2.5 rounded-premium-sm bg-brand-veryLightBlue text-brand-primary"><Activity className="w-5 h-5" /></div>
@@ -117,7 +183,7 @@ const Analytics = () => {
         <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-5 rounded-premium shadow-premium flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-brand-textSecondary uppercase tracking-wider block mb-1">Power Factor</span>
-            <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">0.94 PF</span>
+            <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">{powerFactor}</span>
             <span className="text-[10px] font-semibold text-brand-success block mt-1">Highly Efficient (ideal &gt;0.9)</span>
           </div>
           <div className="p-2.5 rounded-premium-sm bg-brand-veryLightBlue text-brand-primary"><Gauge className="w-5 h-5" /></div>
@@ -126,7 +192,7 @@ const Analytics = () => {
         <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-5 rounded-premium shadow-premium flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-brand-textSecondary uppercase tracking-wider block mb-1">Peak Demand load</span>
-            <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">64.5 kW</span>
+            <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">{peakLoad}</span>
             <span className="text-[10px] font-semibold text-brand-textSecondary dark:text-dark-textSecondary block mt-1">Registered today at 20:35</span>
           </div>
           <div className="p-2.5 rounded-premium-sm bg-brand-veryLightBlue text-brand-primary"><Zap className="w-5 h-5 fill-current" /></div>
@@ -135,7 +201,7 @@ const Analytics = () => {
         <div className="bg-white dark:bg-slate-800 border border-brand-border dark:border-dark-border p-5 rounded-premium shadow-premium flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-brand-textSecondary uppercase tracking-wider block mb-1">Load Distribution</span>
-            <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">72% Active</span>
+            <span className="text-2xl font-black text-brand-textPrimary dark:text-dark-textPrimary">{loadDistribution}</span>
             <span className="text-[10px] font-semibold text-brand-textSecondary block mt-1">28% Passive Baseload</span>
           </div>
           <div className="p-2.5 rounded-premium-sm bg-brand-veryLightBlue text-brand-primary"><ActivitySquare className="w-5 h-5" /></div>
@@ -174,7 +240,7 @@ const Analytics = () => {
             Top Energy Consumers
           </h4>
           <div className="space-y-4">
-            {rankings.highestConsuming.map((r, i) => (
+            {activeRankings.highestConsuming.map((r, i) => (
               <div key={i} className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${r.color}`}>
@@ -197,7 +263,7 @@ const Analytics = () => {
             Energy Efficient Rankings
           </h4>
           <div className="space-y-4">
-            {rankings.lowestConsuming.map((r, i) => (
+            {activeRankings.lowestConsuming.map((r, i) => (
               <div key={i} className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${r.color}`}>
@@ -220,7 +286,7 @@ const Analytics = () => {
             Highest Savings Actions
           </h4>
           <div className="space-y-4">
-            {rankings.highestSavings.map((r, i) => (
+            {activeRankings.highestSavings.map((r, i) => (
               <div key={i} className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${r.color}`}>

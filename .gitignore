@@ -1,1 +1,24 @@
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Production builds
+frontend/dist/
+frontend/build/
+
+# Python cache & virtualenv
+__pycache__/
+*.pyc
+.venv/
+env/
+backend/app/__pycache__/
+backend/__pycache__/
+
+# Local configuration
+.env
 backend/.env
+frontend/.env
+*.local
+
+# Logs
+*.log

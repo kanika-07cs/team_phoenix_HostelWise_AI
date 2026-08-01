@@ -16,6 +16,17 @@
 ---
 **Deployment Link** - https://team-phoenix-hostel-wise-ai-2c9x.vercel.app 
 
+## 🔐 Demo Credentials
+
+Use the following credentials to log in and explore the application:
+
+| Role | Username | Password |
+|------|----------|----------|
+| Admin | `admin` | `admin123` |
+| Supervisor | `supervisor` | `supervisor123` |
+
+> **Note:** These are demo credentials intended for testing and evaluation purposes only.
+
 ## 📌 Table of Contents
 
 - [Executive Summary](#-executive-summary)

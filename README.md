@@ -14,6 +14,18 @@
 **HostelWise AI** is an enterprise-grade, AI-driven energy management, anomaly detection, and occupancy monitoring platform tailored for college hostels and university campuses. By integrating real-time smart meter telemetry, student biometric attendance logs, machine learning anomaly detection, and a local context-aware LLM assistant, HostelWise AI enables institutional administrators and hostel supervisors to slash energy wastage, prevent power factor penalties, and enforce audit transparency.
 
 ---
+**Deployment Link** - https://team-phoenix-hostel-wise-ai-2c9x.vercel.app 
+
+## 🔐 Demo Credentials
+
+Use the following credentials to log in and explore the application:
+
+| Role | Username | Password |
+|------|----------|----------|
+| Admin | `admin` | `admin123` |
+| Supervisor | `supervisor` | `supervisor123` |
+
+> **Note:** These are demo credentials intended for testing and evaluation purposes only.
 
 ## 📌 Table of Contents
 
@@ -513,18 +525,6 @@ GOOGLE_CLIENT_ID=""
 OLLAMA_URL="http://127.0.0.1:11434"
 OLLAMA_MODEL="llama3"
 ```
-
----
-
-## 🔑 Default User Credentials
-
-Upon initial backend startup, default administrative accounts and hostels are automatically seeded if the database is empty:
-
-| Role | Username | Password | Access Scope |
-| :--- | :--- | :--- | :--- |
-| **Super Admin** | `admin` | `admin123` | Full Campus Access (All Hostels) |
-
-*Note: Supervisors can be created via the Super Admin **User Management** page (`/users`) and linked to specific hostels (Hostel A, Hostel B, Hostel C, Hostel D).*
 
 ---
 

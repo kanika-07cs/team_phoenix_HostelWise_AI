@@ -14,7 +14,7 @@
 **HostelWise AI** is an enterprise-grade, AI-driven energy management, anomaly detection, and occupancy monitoring platform tailored for college hostels and university campuses. By integrating real-time smart meter telemetry, student biometric attendance logs, machine learning anomaly detection, and a local context-aware LLM assistant, HostelWise AI enables institutional administrators and hostel supervisors to slash energy wastage, prevent power factor penalties, and enforce audit transparency.
 
 ---
-**Deployment Link** - https://team-phoenix-hostel-wise-ai-2c9x-fk7kajiwx-kanika-07cs-projects.vercel.app/
+**Deployment Link** - https://team-phoenix-hostel-wise-ai-2c9x.vercel.app 
 
 ## 📌 Table of Contents
 

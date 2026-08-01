@@ -92,7 +92,6 @@ async def chat_with_assistant(
     )
 
     try:
-        # Request local Ollama LLM endpoint
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{settings.OLLAMA_URL}/api/generate",
@@ -104,9 +103,13 @@ async def chat_with_assistant(
                 timeout=120.0
             )
             if response.status_code != 200:
+                try:
+                    err_msg = response.json().get("error", response.text)
+                except Exception:
+                    err_msg = response.text
                 raise HTTPException(
                     status_code=502,
-                    detail=f"Ollama server returned error status code: {response.status_code}"
+                    detail=f"Ollama error ({response.status_code}): {err_msg}"
                 )
                 
             result = response.json()

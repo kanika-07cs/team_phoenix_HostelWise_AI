@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     MYSQL_PORT: str = os.getenv("MYSQL_PORT", "3306")
     MYSQL_DB: str = os.getenv("MYSQL_DB", "hostel_energy_db")
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
-    OLLAMA_URL: str = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
+    OLLAMA_URL: str = os.getenv("OLLAMA_URL", "http://localhost:11434")
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3")
     
     @property

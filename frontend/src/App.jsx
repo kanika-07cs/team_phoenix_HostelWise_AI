@@ -16,6 +16,7 @@ import Analytics from './pages/Analytics';
 import Reports from './pages/Reports';
 import UserManagement from './pages/UserManagement';
 import Settings from './pages/Settings';
+import AIAssistant from './pages/AIAssistant';
 
 // Route Guard for Authenticated sessions
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -87,6 +88,7 @@ const AppContent = () => {
                   <Route path="/occupancy" element={<Occupancy />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/reports" element={<Reports />} />
+                  <Route path="/ai-assistant" element={<AIAssistant />} />
                   
                   {/* Super Admin Restricted User Management */}
                   <Route 

@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base, SessionLocal
-from app.routers import auth, users, hostels, students, energy, reports
+from app.routers import auth, users, hostels, students, energy, reports, ai
 from app.models import database as models
 from app.core.security import get_password_hash
 import joblib
@@ -50,6 +50,7 @@ app.include_router(hostels.router, prefix=settings.API_V1_STR)
 app.include_router(students.router, prefix=settings.API_V1_STR)
 app.include_router(energy.router, prefix=settings.API_V1_STR)
 app.include_router(reports.router, prefix=settings.API_V1_STR)
+app.include_router(ai.router, prefix=settings.API_V1_STR)
 
 
 @app.on_event("startup")

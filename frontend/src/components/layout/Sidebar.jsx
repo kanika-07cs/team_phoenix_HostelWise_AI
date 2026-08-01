@@ -10,7 +10,8 @@ import {
   UserCog, 
   Settings, 
   LogOut,
-  Zap
+  Zap,
+  Sparkles
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -26,6 +27,7 @@ const Sidebar = () => {
     { name: 'Occupancy', path: '/occupancy', icon: Users },
     { name: 'Energy Analytics', path: '/analytics', icon: BarChart3 },
     { name: 'Reports', path: '/reports', icon: FileSpreadsheet },
+    { name: 'AI Assistant', path: '/ai-assistant', icon: Sparkles },
     ...(isSuperAdmin ? [{ name: 'User Management', path: '/users', icon: UserCog }] : []),
     { name: 'Settings', path: '/settings', icon: Settings },
   ];

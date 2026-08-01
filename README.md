@@ -528,18 +528,6 @@ OLLAMA_MODEL="llama3"
 
 ---
 
-## 🔑 Default User Credentials
-
-Upon initial backend startup, default administrative accounts and hostels are automatically seeded if the database is empty:
-
-| Role | Username | Password | Access Scope |
-| :--- | :--- | :--- | :--- |
-| **Super Admin** | `admin` | `admin123` | Full Campus Access (All Hostels) |
-
-*Note: Supervisors can be created via the Super Admin **User Management** page (`/users`) and linked to specific hostels (Hostel A, Hostel B, Hostel C, Hostel D).*
-
----
-
 ## ✅ Verification & Testing
 
 1. **API Health Check**:
